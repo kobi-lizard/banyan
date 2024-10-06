@@ -70,7 +70,7 @@ go build ../server
 Users can run Bamboo-based cBFT protocols locally or on cloud infrastructure.
 
 ## Local
-In simulation mode, replicas are running in separate Goroutines and messages are passing via Go channel.
+
 1. ```cd bamboo/bin```.
 2. Put the name of the protocol you are going to run in `run_local.sh` (banyan, icc, hotstuff, streamlet).
 3. Modify `ips.txt` with a set of IPs of each node. The number of IPs equals to the number of nodes. Here, the local IP is `127.0.0.1`. Each node will be assigned by an increasing port from `8070`.
