@@ -32,27 +32,23 @@ Features:
 
 ```bash
 aws/             # AWS configuration and deployment scripts
-benchmark/       # legacy
 bin/deploy/      # Deployment scripts and utilities
 bin/logs/        # Logs location
 blockchain/      # Core blockchain implementation and logic
 blockchain_view/ # View-change counterpart
-config/          # legacy
+config/          # config
 crypto/          # Cryptographic utilities
-doc/             # legacy
 election/        # Leader election mechanisms and algorithms
 identity/        # Identity management
 local_timeout/   # Logic for managing and handling local timeouts
-log/             # legacy
+log/             # log
 message/         # Message structures
 node/            # Core node functionality
 pacemaker/       # Pacemaker and heartbeat mechanisms
-plot/            # legacy
 protocol/        # Core protocol definitions and interactions
 replica/         # Replica management and synchronization logic
 server/          # Server-side logic and network handling
 socket/          # Socket communication utilities
-startus-plot/    # legacy
 transport/       # Data transport mechanisms and utilities
 types/           # Type definitions and shared data structures
 utils/           # General utility functions and helpers
