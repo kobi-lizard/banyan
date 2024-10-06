@@ -1,26 +1,21 @@
 package blockchain
 
 import (
+	"banyan/crypto"
 	"fmt"
-	"github.com/gitferry/bamboo/crypto"
-	"github.com/gitferry/bamboo/types"
 )
 
 type BlockChain struct {
-	forrest          *LevelledForest
-	quorum           *Quorum
-	longestTailBlock *Block
+	forrest *LevelledForest
 	// measurement
-	highestComitted     int
-	committedBlockNo    int
-	totalBlockIntervals int
-	prunedBlockNo       int
+	highestComitted  int
+	committedBlockNo int
+	prunedBlockNo    int
 }
 
 func NewBlockchain(n int) *BlockChain {
 	bc := new(BlockChain)
 	bc.forrest = NewLevelledForest()
-	bc.quorum = NewQuorum(n)
 	return bc
 }
 
@@ -31,10 +26,6 @@ func (bc *BlockChain) Exists(id crypto.Identifier) bool {
 func (bc *BlockChain) AddBlock(block *Block) {
 	blockContainer := &BlockContainer{block}
 	bc.forrest.AddVertex(blockContainer)
-}
-
-func (bc *BlockChain) AddVote(vote *Vote) (bool, *QC) {
-	return bc.quorum.Add(vote)
 }
 
 func (bc *BlockChain) GetBlockByID(id crypto.Identifier) (*Block, error) {
@@ -67,29 +58,24 @@ func (bc *BlockChain) GetGrandParentBlock(id crypto.Identifier) (*Block, error) 
 }
 
 // CommitBlock prunes blocks and returns committed blocks up to the last committed one and prunedBlocks
-func (bc *BlockChain) CommitBlock(id crypto.Identifier, view types.View) ([]*Block, []*Block, error) {
+func (bc *BlockChain) CommitBlock(id crypto.Identifier, height int) ([]*Block, []*Block, error) {
 	vertex, ok := bc.forrest.GetVertex(id)
 	if !ok {
 		return nil, nil, fmt.Errorf("cannot find the block, id: %x", id)
 	}
-	committedView := vertex.GetBlock().View
-	bc.highestComitted = int(vertex.GetBlock().View)
+	committedHeight := vertex.GetBlock().Height
+	bc.highestComitted = int(vertex.GetBlock().Height)
 	var committedBlocks []*Block
-	for block := vertex.GetBlock(); uint64(block.View) > bc.forrest.LowestLevel; {
+	for block := vertex.GetBlock(); uint64(block.Height) > bc.forrest.LowestLevel; {
 		committedBlocks = append(committedBlocks, block)
-		_, ok := bc.quorum.votes[block.ID]
-		if ok {
-			delete(bc.quorum.votes, block.ID)
-		}
 		bc.committedBlockNo++
-		bc.totalBlockIntervals += int(view - block.View)
 		vertex, exists := bc.forrest.GetVertex(block.PrevID)
 		if !exists {
 			break
 		}
 		block = vertex.GetBlock()
 	}
-	forkedBlocks, prunedNo, err := bc.forrest.PruneUpToLevel(uint64(committedView))
+	forkedBlocks, prunedNo, err := bc.forrest.PruneUpToLevel(uint64(committedHeight))
 	if err != nil {
 		return nil, nil, fmt.Errorf("cannot prune the blockchain to the committed block, id: %w", err)
 	}
@@ -111,10 +97,6 @@ func (bc *BlockChain) GetChainGrowth() float64 {
 	return float64(bc.committedBlockNo) / float64(bc.prunedBlockNo+1)
 }
 
-func (bc *BlockChain) GetBlockIntervals() float64 {
-	return float64(bc.totalBlockIntervals) / float64(bc.committedBlockNo)
-}
-
 func (bc *BlockChain) GetHighestCommitted() int {
 	return bc.highestComitted
 }
@@ -123,7 +105,7 @@ func (bc *BlockChain) GetCommittedBlocks() int {
 	return bc.committedBlockNo
 }
 
-func (bc *BlockChain) GetBlockByView(view types.View) *Block {
-	iterator := bc.forrest.GetVerticesAtLevel(uint64(view))
+func (bc *BlockChain) GetBlockByHeight(height int) *Block {
+	iterator := bc.forrest.GetVerticesAtLevel(uint64(height))
 	return iterator.next.GetBlock()
 }

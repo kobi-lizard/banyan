@@ -1,11 +1,11 @@
 package pacemaker
 
 import (
-	"github.com/gitferry/bamboo/config"
+	"banyan/config"
 	"sync"
 	"time"
 
-	"github.com/gitferry/bamboo/types"
+	"banyan/types"
 )
 
 type Pacemaker struct {

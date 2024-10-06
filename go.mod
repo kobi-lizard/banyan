@@ -1,4 +1,4 @@
-module github.com/gitferry/bamboo
+module banyan
 
 go 1.14
 

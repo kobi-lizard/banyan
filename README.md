@@ -1,51 +1,65 @@
+# Banyan - Bamboo Implementation
+
+This repository is a fork of bamboo: https://github.com/gitferry/bamboo
+
 ## What is Bamboo?
 
-**Bamboo** is a prototyping and evaluation framework that studies the next generation BFT (Byzantine fault-tolerant) protocols specific for blockchains, namely chained-BFT, or cBFT.
+> **Bamboo** is a prototyping and evaluation framework that studies the next generation BFT (Byzantine fault-tolerant) protocols specific for blockchains, namely chained-BFT, or cBFT.
 By leveraging Bamboo, developers can prototype a brand new cBFT protocol in around 300 LoC and evaluate using rich benchmark facilities.
 
-Bamboo is designed based on an observation that the core of cBFT protocols can be abstracted into 4 rules: **Proposing**, **Voting**, **State Updating**, and **Commit**.
-Therefore, Bamboo abstracts the 4 rules into a *Safety* module and provides implementations of the rest of the components that can be shared across cBFT protocols, leaving the safety module to be specified by developers.
+> Bamboo details can be found in this [technical report](https://arxiv.org/abs/2103.00777). The paper appeared at [ICDCS 2021](https://icdcs2021.us/).
 
-*Warning*: **Bamboo** is still under heavy development, with more features and protocols to include.
-
-Bamboo details can be found in this [technical report](https://arxiv.org/abs/2103.00777). The paper is to appear at [ICDCS 2021](https://icdcs2021.us/).
-
-## What is cBFT?
-At a high level, cBFT protocols share a unifying *propose-vote* paradigm in which they assign transactions coming from the clients a unique order in the global ledger.
-A blockchain is a sequence of blocks cryptographically linked together by hashes.
-Each block in a blockchain contains a hash of its parent block along with a batch of transactions and other metadata.  
-
-Similar to classic BFT protocols, cBFT protocols are driven by leader nodes and operate in a view-by-view manner.
-Each participant takes actions on receipt of messages according to four protocol-specific rules: **Proposing**, **Voting**, **State Updating**, and **Commit**.
-Each view has a designated leader chosen at random, which proposes a block according to the **Proposing** rule and populates the network.
-On receiving a block, replicas take actions according to the **Voting** rule and update their local state according to the **State Updating** rule.
-For each view, replicas should certify the validity of the proposed block by forming a *Quorum Certificate* (or QC) for the block.
-A block with a valid QC is considered certified.
-The basic structure of a blockchain is depicted in the figure below.
-
-![blockchain](https://github.com/gitferry/bamboo/blob/master/doc/propose-vote.jpeg?raw=true)
-
-Forks happen because of conflicting blocks, which is a scenario in which two blocks do not extend each other.
-Conflicting blocks might arise because of network delays or proposers deliberately ignoring the tail of the blockchain.
-Replicas finalize a block whenever the block satisfies the **Commit** rule based on their local state.
-Once a block is finalized, the entire prefix of the chain is also finalized. Rules dictate that all finalized blocks remain in a single chain.
-Finalized blocks can be removed from memory to persistent storage for garbage collection.
+## What is Banyan?
+Banyan is the first chained-BFT protocol that allows blocks to be confirmed in just a single round-trip time. It is integrated into the Internet Computer Consensus (ICC) protocol, without requiring any communication overhead. Crucially, even if the fast path is not effective, no penalties are incurred. 
 
 ## What is included?
 
 Protocols:
-- [x] [HotStuff and two-chain HotStuff](https://dl.acm.org/doi/10.1145/3293611.3331591)
+- [x] [HotStuff](https://dl.acm.org/doi/10.1145/3293611.3331591)
+- [ ] [Two-chain HotStuff](https://dl.acm.org/doi/10.1145/3293611.3331591)
 - [x] [Streamlet](https://dl.acm.org/doi/10.1145/3419614.3423256)
-- [x] [Fast-HotStuff](https://arxiv.org/abs/2010.11454)
+- [ ] [Fast-HotStuff](https://arxiv.org/abs/2010.11454)
 - [ ] [LBFT](https://arxiv.org/abs/2012.01636)
 - [ ] [SFT](https://arxiv.org/abs/2101.03715)
+- [x] [Internet Computer Consensus](https://dl.acm.org/doi/abs/10.1145/3519270.3538430)
+- [x] [Banyan](https://arxiv.org/html/2312.05869v1)
 
 Features:
 - [x] Benchmarking
 - [x] Fault injection
 
+## File Structure
 
-# How to build
+```bash
+aws/             # AWS configuration and deployment scripts
+benchmark/       # legacy
+bin/deploy/      # Deployment scripts and utilities
+bin/logs/        # Logs location
+blockchain/      # Core blockchain implementation and logic
+blockchain_view/ # View-change counterpart
+config/          # legacy
+crypto/          # Cryptographic utilities
+doc/             # legacy
+election/        # Leader election mechanisms and algorithms
+identity/        # Identity management
+local_timeout/   # Logic for managing and handling local timeouts
+log/             # legacy
+message/         # Message structures
+node/            # Core node functionality
+pacemaker/       # Pacemaker and heartbeat mechanisms
+plot/            # legacy
+protocol/        # Core protocol definitions and interactions
+replica/         # Replica management and synchronization logic
+server/          # Server-side logic and network handling
+socket/          # Socket communication utilities
+startus-plot/    # legacy
+transport/       # Data transport mechanisms and utilities
+types/           # Type definitions and shared data structures
+utils/           # General utility functions and helpers
+```
+
+
+## How to build
 
 1. Install [Go](https://golang.org/dl/).
 
@@ -60,9 +74,9 @@ go build ../client
 
 # How to run
 
-Users can run Bamboo-based cBFT protocols in simulation (single process) or deployment.
+Users can run Bamboo-based cBFT protocols locally or on cloud infrastructure.
 
-## Simulation
+## Local
 In simulation mode, replicas are running in separate Goroutines and messages are passing via Go channel.
 1. ```cd bamboo/bin```.
 2. Modify `ips.txt` with a set of IPs of each node. The number of IPs equals to the number of nodes. Here, the local IP is `127.0.0.1`. Each node will be assigned by an increasing port from `8070`.
@@ -82,42 +96,9 @@ bash stop.sh
 ```
 Logs are produced in the local directory with the name of `client/server.xxx.log` where `xxx` is the pid of the process.
 
-## Deploy
-Bamboo can be deployed in a real network.
-1. ```cd bamboo/bin/deploy```.
-2. Build `server` and `client`.
-3. Specify external IPs and internal IPs of server nodes in `pub_ips.txt` and `ips.txt`, respectively.
-4. IPs of machines running as clients are specified in `clients.txt`.
-5. The type of the protocol is specified in `run.sh`.
-6. Modify configuration parameters in `config.json`.
-7. Modify `deploy.sh` and `setup_cli.sh` to specify the username and password for logging onto the server and client machines. 
-8. Upload binaries and config files onto the remote machines.
-```
-bash deploy.sh
-bash setup_cli.sh
-```
-9. Upload/Update config files onto the remote machines.
-```
-bash update_conf.sh
-```
-10. Start the server nodes.
-```
-bash start.sh
-```
-11. Log onto the client machine (assuming only one) via ssh and start the client.
-```
-bash ./runClient.sh
-```
-The number of concurrent clients can be specified in `runClient.sh`.
-12. Stop the client and server.
-```
-bash ./closeClient.sh
-bash ./pkill.sh
-```
+## Cloud (AWS)
+Bamboo can be deployed in a cloud network. We fork [hashrand-rs](https://github.com/akhilsb/hashrand-rs) (which itself is a fork of the Narwal benchmarking suite) to provide simple interaction with AWS.
 
-# Monitor
-During each run, one can view the statistics (throughput, latency, view number, etc.) at a node via a browser.
-```
-http://127.0.0.1:8070/query
-``` 
-where `127.0.0.1:8070` can be replaced with the actual node address.
+1. To set up the AWS testbed follow the instructions at ```/bin/deploy/README.md```.
+2. If needed adapt the settings by adjusting the `bin/deploy/config.json` file.
+3. Run the `bash benchmarkRemote.sh` file. An example usage is described at the start of the file. To run banyan for the first time use: ```bash benchmarkRemote.sh banyan 0 1 1```.

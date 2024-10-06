@@ -10,7 +10,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/gitferry/bamboo/log"
+	"banyan/log"
 )
 
 var Scheme = flag.String("transport", "tcp", "transport scheme (tcp, udp, chan), default tcp")
@@ -118,9 +118,11 @@ func (t *transport) Dial() error {
 	return nil
 }
 
-/******************************
+/*
+*****************************
 /*     TCP communication      *
-/******************************/
+/*****************************
+*/
 type tcp struct {
 	*transport
 }
@@ -155,7 +157,7 @@ func (t *tcp) Listen() {
 						err := decoder.Decode(&m)
 						if err != nil {
 							log.Error(err)
-							continue
+							panic("panic many bad!")
 						}
 						t.recv <- m
 					}
@@ -166,9 +168,11 @@ func (t *tcp) Listen() {
 	}(listener)
 }
 
-/******************************
+/*
+*****************************
 /*     UDP communication      *
-/******************************/
+/*****************************
+*/
 type udp struct {
 	*transport
 }

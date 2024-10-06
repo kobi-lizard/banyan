@@ -8,11 +8,11 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/gitferry/bamboo/config"
-	"github.com/gitferry/bamboo/crypto"
-	"github.com/gitferry/bamboo/identity"
-	"github.com/gitferry/bamboo/log"
-	"github.com/gitferry/bamboo/message"
+	"banyan/config"
+	"banyan/crypto"
+	"banyan/identity"
+	"banyan/log"
+	"banyan/message"
 )
 
 func FindIntSlice(slice []int, val int) bool {

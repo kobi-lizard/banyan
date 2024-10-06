@@ -1,0 +1,19 @@
+{
+    "key": {
+        "name": "aws_global",
+        "path": "/local/home/yvonlanthen/.ssh/aws_global"
+    },
+    "port": 3000,
+    "client_base_port": 3000,
+    "client_run_port": 3500,
+    "repo": {
+        "name": "bamboo",
+        "url": "https://github.com/yannvon/bamboo",
+        "branch": "icc"
+    },
+    "instances": {
+        "type": "t3a.medium",
+        "regions": ["us-east-1","us-east-2","us-west-1","us-west-2", "ca-central-1"]
+    }
+}
+

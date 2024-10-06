@@ -1,16 +1,15 @@
 package blockchain
 
 import (
+	"banyan/crypto"
+	"banyan/log"
 	"fmt"
-	"github.com/gitferry/bamboo/log"
-
-	"github.com/gitferry/bamboo/crypto"
 )
 
 // LevelledForest contains multiple trees (which is a potentially disconnected planar graph).
-// Each vertexContainer in the graph has a level (view) and a hash. A vertexContainer can only have one parent
-// with strictly smaller level (view). A vertexContainer can have multiple children, all with
-// strictly larger level (view).
+// Each vertexContainer in the graph has a level (height) and a hash. A vertexContainer can only have one parent
+// with strictly smaller level (height). A vertexContainer can have multiple children, all with
+// strictly larger level (height).
 // A LevelledForest provides the ability to prune all vertices up to a specific level.
 // A tree whose root is below the pruning threshold might decompose into multiple
 // disconnected subtrees as a result of pruning.
@@ -24,12 +23,12 @@ type VertexList []*vertexContainer
 type VertexSet map[crypto.Identifier]*vertexContainer
 
 // vertexContainer holds information about a tree vertex. Internally, we distinguish between
-// * FULL container: has non-nil value for vertex.
-//   Used for vertices, which have been added to the tree.
-// * EMPTY container: has NIL value for vertex.
-//   Used for vertices, which have NOT been added to the tree, but are
-//   referenced by vertices in the tree. An empty container is converted to a
-//   full container when the respective vertex is added to the tree
+//   - FULL container: has non-nil value for vertex.
+//     Used for vertices, which have been added to the tree.
+//   - EMPTY container: has NIL value for vertex.
+//     Used for vertices, which have NOT been added to the tree, but are
+//     referenced by vertices in the tree. An empty container is converted to a
+//     full container when the respective vertex is added to the tree
 type vertexContainer struct {
 	id       crypto.Identifier
 	level    uint64
@@ -73,7 +72,7 @@ func (f *LevelledForest) PruneUpToLevel(level uint64) ([]*Block, int, error) {
 		for _, v := range f.verticesAtLevel[l] { // nil map behaves like empty map when iterating over it
 			if !committedLevels[l] && l > 1 {
 				if v.vertex != nil {
-					log.Debugf("found a forked block, view: %v, id: %x", v.vertex.Level(), v.vertex.VertexID())
+					log.Debugf("found a forked block, height: %v, id: %x", v.vertex.Level(), v.vertex.VertexID())
 					forkedBlocks = append(forkedBlocks, v.vertex.GetBlock())
 				}
 			}
@@ -160,25 +159,23 @@ func (f *LevelledForest) AddVertex(vertex Vertex) {
 	// container is empty, i.e. full vertex is new and should be stored in container
 	container.vertex = vertex // add vertex to container
 	f.registerWithParent(container)
-	return
 }
 
 func (f *LevelledForest) registerWithParent(vertexContainer *vertexContainer) {
 	// caution: do not modify this combination of check (a) and (a)
-	// Deliberate handling of root vertex (genesis block) whose view is _exactly_ at LowestLevel
+	// Deliberate handling of root vertex (genesis block) whose height is _exactly_ at LowestLevel
 	// For this block, we don't care about its parent and the exception is allowed where
 	// vertex.level = vertex.Parent().Level = LowestLevel = 0
 	if vertexContainer.level <= f.LowestLevel { // check (a)
 		return
 	}
 
-	_, parentView := vertexContainer.vertex.Parent()
-	if parentView < f.LowestLevel {
+	_, parentHeight := vertexContainer.vertex.Parent()
+	if parentHeight < f.LowestLevel {
 		return
 	}
 	parentContainer := f.getOrCreateVertexContainer(vertexContainer.vertex.Parent())
 	parentContainer.children = append(parentContainer.children, vertexContainer) // append works on nil slices: creates slice with capacity 2
-	return
 }
 
 // getOrCreateVertexContainer returns the vertexContainer if there exists one
@@ -243,18 +240,18 @@ func (f *LevelledForest) isEquivalentToStoredVertex(vertex Vertex) (bool, error)
 
 	// found vertex in storage with identical ID
 	// => we expect all other (relevant) fields to be identical
-	if vertex.Level() != storedVertex.Level() { // view number
+	if vertex.Level() != storedVertex.Level() { // height number
 		return false, fmt.Errorf("conflicting vertices with ID %v", vertex.VertexID())
 	}
 	if vertex.Level() <= f.LowestLevel {
 		return true, nil
 	}
-	newParentId, newParentView := vertex.Parent()
-	storedParentId, storedParentView := storedVertex.Parent()
+	newParentId, newParentHeight := vertex.Parent()
+	storedParentId, storedParentHeight := storedVertex.Parent()
 	if newParentId != storedParentId { // qc.blockID
 		return false, fmt.Errorf("conflicting vertices with ID %v", vertex.VertexID())
 	}
-	if newParentView != storedParentView { // qc.view
+	if newParentHeight != storedParentHeight { // qc.height
 		return false, fmt.Errorf("conflicting vertices with ID %v", vertex.VertexID())
 	}
 	// all _relevant_ fields identical
@@ -263,7 +260,7 @@ func (f *LevelledForest) isEquivalentToStoredVertex(vertex Vertex) (bool, error)
 
 // verifyParent verifies whether vertex.Parent() is consistent with current forest.
 // An error is raised if
-// * there is a parent with the same id but different view;
+// * there is a parent with the same id but different height;
 // * the parent's level is _not_ smaller than the vertex's level
 func (f *LevelledForest) verifyParent(vertex Vertex) error {
 	// verify parent

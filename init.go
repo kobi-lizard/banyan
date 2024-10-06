@@ -1,11 +1,11 @@
-package bamboo
+package banyan
 
 import (
 	"flag"
 	"net/http"
 
-	"github.com/gitferry/bamboo/config"
-	"github.com/gitferry/bamboo/log"
+	"banyan/config"
+	"banyan/log"
 )
 
 func Init() {

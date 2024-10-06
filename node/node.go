@@ -5,11 +5,10 @@ import (
 	"reflect"
 	"sync"
 
-	"github.com/gitferry/bamboo/config"
-	"github.com/gitferry/bamboo/identity"
-	"github.com/gitferry/bamboo/log"
-	"github.com/gitferry/bamboo/message"
-	"github.com/gitferry/bamboo/socket"
+	"banyan/config"
+	"banyan/identity"
+	"banyan/log"
+	"banyan/socket"
 )
 
 // Node is the primary access point for every replica
@@ -19,8 +18,6 @@ type Node interface {
 	//Database
 	ID() identity.NodeID
 	Run()
-	Retry(r message.Transaction)
-	Forward(id identity.NodeID, r message.Transaction)
 	Register(m interface{}, f interface{})
 	IsByz() bool
 }
@@ -36,10 +33,8 @@ type node struct {
 	handles     map[string]reflect.Value
 	server      *http.Server
 	isByz       bool
-	totalTxn    int
 
 	sync.RWMutex
-	forwards map[string]*message.Transaction
 }
 
 // NewNode creates a new Node object from configuration
@@ -47,12 +42,11 @@ func NewNode(id identity.NodeID, isByz bool) Node {
 	return &node{
 		id:     id,
 		isByz:  isByz,
-		Socket: socket.NewSocket(id, config.Configuration.Addrs),
+		Socket: socket.NewSocket(id, config.Configuration.Addrs, isByz),
 		//Database:    NewDatabase(),
-		MessageChan: make(chan interface{}, config.Configuration.ChanBufferSize),
-		TxChan:      make(chan interface{}, config.Configuration.ChanBufferSize),
+		MessageChan: make(chan interface{}, 1024),
+		TxChan:      make(chan interface{}, 1024),
 		handles:     make(map[string]reflect.Value),
-		forwards:    make(map[string]*message.Transaction),
 	}
 }
 
@@ -62,11 +56,6 @@ func (n *node) ID() identity.NodeID {
 
 func (n *node) IsByz() bool {
 	return n.isByz
-}
-
-func (n *node) Retry(r message.Transaction) {
-	log.Debugf("node %v retry reqeust %v", n.id, r)
-	n.MessageChan <- r
 }
 
 // Register a handle function for each message type
@@ -112,28 +101,10 @@ func (n *node) txn() {
 	}
 }
 
-//recv receives messages from socket and pass to message channel
+// recv receives messages from socket and pass to message channel
 func (n *node) recv() {
 	for {
 		m := n.Recv()
-		if n.isByz && config.GetConfig().Strategy == "silence" {
-			// perform silence attack
-			continue
-		}
-		switch m := m.(type) {
-		case message.Transaction:
-			m.C = make(chan message.TransactionReply, 1)
-			n.TxChan <- m
-			continue
-
-		case message.TransactionReply:
-			n.RLock()
-			r := n.forwards[m.Command.String()]
-			log.Debugf("node %v received reply %v", n.id, m)
-			n.RUnlock()
-			r.Reply(m)
-			continue
-		}
 		n.MessageChan <- m
 	}
 }
@@ -199,12 +170,3 @@ func (n *node) Forward(id NodeID, m Transaction) {
 	}
 }
 */
-
-func (n *node) Forward(id identity.NodeID, m message.Transaction) {
-	log.Debugf("Node %v forwarding %v to %s", n.ID(), m, id)
-	m.NodeID = n.id
-	n.Lock()
-	n.forwards[m.Command.String()] = &m
-	n.Unlock()
-	n.Send(id, m)
-}

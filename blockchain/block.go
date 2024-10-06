@@ -1,20 +1,19 @@
 package blockchain
 
 import (
+	"banyan/crypto"
+	"banyan/identity"
+	"io"
+	"math/rand"
 	"time"
-
-	"github.com/gitferry/bamboo/crypto"
-	"github.com/gitferry/bamboo/identity"
-	"github.com/gitferry/bamboo/message"
-	"github.com/gitferry/bamboo/types"
 )
 
 type Block struct {
-	types.View
-	QC        *QC
+	Height    int
+	Rank      int
 	Proposer  identity.NodeID
 	Timestamp time.Time
-	Payload   []*message.Transaction
+	Payload   []byte
 	PrevID    crypto.Identifier
 	Sig       crypto.Signature
 	ID        crypto.Identifier
@@ -22,22 +21,22 @@ type Block struct {
 }
 
 type rawBlock struct {
-	types.View
-	QC       *QC
-	Proposer identity.NodeID
-	Payload  []string
-	PrevID   crypto.Identifier
-	Sig      crypto.Signature
-	ID       crypto.Identifier
+	Height      int
+	Rank        int
+	Proposer    identity.NodeID
+	PayloadHash crypto.Identifier
+	PrevID      crypto.Identifier
+	Sig         crypto.Signature
+	ID          crypto.Identifier
 }
 
 // MakeBlock creates an unsigned block
-func MakeBlock(view types.View, qc *QC, prevID crypto.Identifier, payload []*message.Transaction, proposer identity.NodeID) *Block {
+func MakeBlock(height int, rank int, prevID crypto.Identifier, proposer identity.NodeID, blockByteSize int, r *rand.Rand) *Block {
 	b := new(Block)
-	b.View = view
+	b.Height = height
+	b.Rank = rank
 	b.Proposer = proposer
-	b.QC = qc
-	b.Payload = payload
+	b.Payload = generateRandomPayload(blockByteSize, r)
 	b.PrevID = prevID
 	b.makeID(proposer)
 	return b
@@ -45,17 +44,21 @@ func MakeBlock(view types.View, qc *QC, prevID crypto.Identifier, payload []*mes
 
 func (b *Block) makeID(nodeID identity.NodeID) {
 	raw := &rawBlock{
-		View:     b.View,
-		QC:       b.QC,
+		Height:   b.Height,
+		Rank:     b.Rank,
 		Proposer: b.Proposer,
 		PrevID:   b.PrevID,
 	}
-	var payloadIDs []string
-	for _, txn := range b.Payload {
-		payloadIDs = append(payloadIDs, txn.ID)
-	}
-	raw.Payload = payloadIDs
+	raw.PayloadHash = crypto.MakeID(b.Payload)
 	b.ID = crypto.MakeID(raw)
 	// TODO: uncomment the following
 	b.Sig, _ = crypto.PrivSign(crypto.IDToByte(b.ID), nodeID, nil)
+}
+
+func generateRandomPayload(size int, r *rand.Rand) []byte {
+	payload := make([]byte, size)
+	if _, err := io.ReadFull(r, payload); err != nil {
+		panic(err)
+	}
+	return payload
 }

@@ -1,12 +1,8 @@
 package election
 
 import (
-	"crypto/sha1"
-	"encoding/binary"
-	"strconv"
-
-	"github.com/gitferry/bamboo/identity"
-	"github.com/gitferry/bamboo/types"
+	"banyan/identity"
+	"banyan/types"
 )
 
 type Rotation struct {
@@ -19,28 +15,18 @@ func NewRotation(peerNo int) *Rotation {
 	}
 }
 
-func (r *Rotation) IsLeader(id identity.NodeID, view types.View) bool {
-	if view <= 3 {
-		if id.Node() < r.peerNo {
-			return false
-		}
-		return true
-	}
-	h := sha1.New()
-	h.Write([]byte(strconv.Itoa(int(view) + 1)))
-	bs := h.Sum(nil)
-	data := binary.BigEndian.Uint64(bs)
-	return data%uint64(r.peerNo) == uint64(id.Node()-1)
+func (r *Rotation) IsLeader(id identity.NodeID, height int, rank int) bool {
+	return (uint64(height-1)+uint64(rank))%uint64(r.peerNo) == uint64(id.Node()-1)
 }
 
-func (r *Rotation) FindLeaderFor(view types.View) identity.NodeID {
-	if view <= 3 {
-		return identity.NewNodeID(r.peerNo)
-	}
-	h := sha1.New()
-	h.Write([]byte(strconv.Itoa(int(view + 1))))
-	bs := h.Sum(nil)
-	data := binary.BigEndian.Uint64(bs)
-	id := data%uint64(r.peerNo) + 1
-	return identity.NewNodeID(int(id))
+func (r *Rotation) IsLeaderView(id identity.NodeID, view types.View) bool {
+	return uint64(view-1)%uint64(r.peerNo) == uint64(id.Node()-1)
+}
+
+func (r *Rotation) FindLeaderFor(height int, rank int) identity.NodeID {
+	return identity.NewNodeID((height+rank-1)%r.peerNo + 1)
+}
+
+func (r *Rotation) FindLeaderForView(view types.View) identity.NodeID {
+	return identity.NewNodeID(int(view-1)%r.peerNo + 1)
 }

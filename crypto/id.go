@@ -1,7 +1,7 @@
 package crypto
 
 import (
-	"github.com/gitferry/bamboo/types/encoding"
+	"banyan/types/encoding"
 )
 
 type Identifier [32]byte

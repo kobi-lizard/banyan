@@ -1,0 +1,52 @@
+HTTP/1.1 200 OK
+Date: Mon, 20 May 2024 17:30:24 GMT
+Content-Length: 364
+Content-Type: text/plain; charset=utf-8
+
+Ave. actual proposing time is 22.42168674698795 ms.
+Ave. proposing time is 12.443844045710744 ms.
+Ave. processing time is 1.3072289156626506 ms.
+Ave. vote time is 30.755364806866954 ms.
+Ave. block size is 19.191176470588236.
+Ave. round time is 44.506437768240346 ms.
+Ave. latency is 262.4922360248447 ms.
+Time: 10.420705172 s. Throughput: 489.12236708610965 txs/s
+HTTP/1.1 200 OK
+Date: Mon, 20 May 2024 17:30:25 GMT
+Content-Length: 362
+Content-Type: text/plain; charset=utf-8
+
+Ave. actual proposing time is 18.60326086956522 ms.
+Ave. proposing time is 11.662908172469784 ms.
+Ave. processing time is 1.0217391304347827 ms.
+Ave. vote time is 31.692946058091287 ms.
+Ave. block size is 22.689655172413794.
+Ave. round time is 44.37759336099585 ms.
+Ave. latency is 278.79559270516717 ms.
+Time: 10.739832425 s. Throughput: 491.162221816082 txs/s
+HTTP/1.1 200 OK
+Date: Mon, 20 May 2024 17:30:25 GMT
+Content-Length: 364
+Content-Type: text/plain; charset=utf-8
+
+Ave. actual proposing time is 24.04787234042553 ms.
+Ave. proposing time is 17.01703823005849 ms.
+Ave. processing time is 1.1702127659574468 ms.
+Ave. vote time is 25.904382470119522 ms.
+Ave. block size is 22.142857142857142.
+Ave. round time is 44.091633466135455 ms.
+Ave. latency is 304.46947674418607 ms.
+Time: 11.070426574 s. Throughput: 494.56088469921406 txs/s
+HTTP/1.1 200 OK
+Date: Mon, 20 May 2024 17:30:25 GMT
+Content-Length: 362
+Content-Type: text/plain; charset=utf-8
+
+Ave. actual proposing time is 22.29901960784314 ms.
+Ave. proposing time is 17.880519383325847 ms.
+Ave. processing time is 0.4362745098039216 ms.
+Ave. vote time is 25.610687022900763 ms.
+Ave. block size is 25.36842105263158.
+Ave. round time is 43.92748091603053 ms.
+Ave. latency is 330.8715980460572 ms.
+Time: 11.510001727 s. Throughput: 495.30835571858995 txs/s

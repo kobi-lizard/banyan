@@ -1,8 +1,8 @@
 package pacemaker
 
 import (
-	"github.com/gitferry/bamboo/identity"
-	"github.com/gitferry/bamboo/types"
+	"banyan/identity"
+	"banyan/types"
 	"sync"
 )
 

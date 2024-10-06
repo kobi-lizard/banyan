@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-N=1
+N=$1
 
 PID_FILE=client.pid
 

@@ -1,0 +1,36 @@
+HTTP/1.1 200 OK
+Date: Mon, 20 May 2024 21:41:17 GMT
+Content-Length: 169
+Content-Type: text/plain; charset=utf-8
+
+Ave. block size is 100.
+Ave. round time is 56.68852459016394 ms.
+Ave. latency is 1388.6464444444443 ms.
+Time: 10.392857726999999 s. Throughput: 1751.2026372324253 txs/s
+HTTP/1.1 200 OK
+Date: Mon, 20 May 2024 21:41:17 GMT
+Content-Length: 163
+Content-Type: text/plain; charset=utf-8
+
+Ave. block size is 100.
+Ave. round time is 56.21989528795812 ms.
+Ave. latency is 1421.6863829787235 ms.
+Time: 10.778503987 s. Throughput: 1772.0455459603797 txs/s
+HTTP/1.1 200 OK
+Date: Mon, 20 May 2024 21:41:18 GMT
+Content-Length: 149
+Content-Type: text/plain; charset=utf-8
+
+Ave. block size is 100.
+Ave. round time is 55.5 ms.
+Ave. latency is 1034.9674509803922 ms.
+Time: 11.147566623 s. Throughput: 1794.113502886173 txs/s
+HTTP/1.1 200 OK
+Date: Mon, 20 May 2024 21:41:18 GMT
+Content-Length: 154
+Content-Type: text/plain; charset=utf-8
+
+Ave. block size is 100.
+Ave. round time is 55.36842105263158 ms.
+Ave. latency is 1289.5975 ms.
+Time: 11.594022531 s. Throughput: 1794.0279029667242 txs/s

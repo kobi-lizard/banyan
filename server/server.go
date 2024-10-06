@@ -1,16 +1,16 @@
 package main
 
 import (
+	"banyan"
 	"flag"
 	"strconv"
 	"sync"
 
-	"github.com/gitferry/bamboo"
-	"github.com/gitferry/bamboo/config"
-	"github.com/gitferry/bamboo/crypto"
-	"github.com/gitferry/bamboo/identity"
-	"github.com/gitferry/bamboo/log"
-	"github.com/gitferry/bamboo/replica"
+	"banyan/config"
+	"banyan/crypto"
+	"banyan/identity"
+	"banyan/log"
+	"banyan/replica"
 )
 
 var algorithm = flag.String("algorithm", "hotstuff", "BFT consensus algorithm")
@@ -23,12 +23,21 @@ func initReplica(id identity.NodeID, isByz bool) {
 		log.Infof("node %v is Byzantine", id)
 	}
 
-	r := replica.NewReplica(id, *algorithm, isByz)
-	r.Start()
+	switch *algorithm {
+	case "icc":
+		r := replica.NewReplica(id, *algorithm, isByz)
+		r.Start()
+	case "banyan":
+		r := replica.NewReplica(id, *algorithm, isByz)
+		r.Start()
+	default:
+		r := replica.NewReplicaView(id, *algorithm, isByz)
+		r.Start()
+	}
 }
 
 func main() {
-	bamboo.Init()
+	banyan.Init()
 	// the private and public keys are generated here
 	errCrypto := crypto.SetKeys()
 	if errCrypto != nil {
@@ -40,17 +49,16 @@ func main() {
 		config.Simulation()
 		for id := range config.GetConfig().Addrs {
 			isByz := false
-			if id.Node() <= config.GetConfig().ByzNo {
+			if id.Node() > config.GetConfig().N-config.GetConfig().ByzNo {
 				isByz = true
 			}
 			go initReplica(id, isByz)
 		}
 		wg.Wait()
 	} else {
-		setupDebug()
 		isByz := false
 		i, _ := strconv.Atoi(*id)
-		if i <= config.GetConfig().ByzNo {
+		if i > config.GetConfig().N-config.GetConfig().ByzNo {
 			isByz = true
 		}
 		initReplica(identity.NodeID(*id), isByz)

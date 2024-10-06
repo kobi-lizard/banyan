@@ -1,17 +1,12 @@
 package replica
 
 import (
-	"github.com/gitferry/bamboo/blockchain"
-	"github.com/gitferry/bamboo/message"
-	"github.com/gitferry/bamboo/pacemaker"
-	"github.com/gitferry/bamboo/types"
+	"banyan/blockchain"
 )
 
 type Safety interface {
 	ProcessBlock(block *blockchain.Block) error
-	ProcessVote(vote *blockchain.Vote)
-	ProcessRemoteTmo(tmo *pacemaker.TMO)
-	ProcessLocalTmo(view types.View)
-	MakeProposal(view types.View, payload []*message.Transaction) *blockchain.Block
-	GetChainStatus() string
+	ProcessNotarizationShare(vote *blockchain.NotarizationShare)
+	ProcessFinalizationShare(vote *blockchain.FinalizationShare)
+	MakeProposal(height int, rank int, payloadSize int) *blockchain.Block
 }

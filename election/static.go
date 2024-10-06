@@ -1,8 +1,7 @@
 package election
 
 import (
-	"github.com/gitferry/bamboo/identity"
-	"github.com/gitferry/bamboo/types"
+	"banyan/identity"
 )
 
 type Static struct {
@@ -15,10 +14,10 @@ func NewStatic(master identity.NodeID) *Static {
 	}
 }
 
-func (st *Static) IsLeader(id identity.NodeID, view types.View) bool {
+func (st *Static) IsLeader(id identity.NodeID, height int, rank int) bool {
 	return id == st.master
 }
 
-func (st *Static) FindLeaderFor(view types.View) identity.NodeID {
+func (st *Static) FindLeaderFor(height int, rank int) identity.NodeID {
 	return st.master
 }
